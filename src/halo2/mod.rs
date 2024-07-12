@@ -137,6 +137,7 @@ pub fn prove(
 
 pub fn verify(
     srs_key_path: &str,
+    _verifying_key_path: &str,
     proof: Vec<u8>,
     public_inputs: Vec<u8>,
 ) -> Result<bool, Box<dyn Error>> {

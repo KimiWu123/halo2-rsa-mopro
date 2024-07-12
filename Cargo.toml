@@ -3,6 +3,11 @@ name = "mopro-halo2-rsa"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "gen-keys"
+path = "src/bin/gen_keys.rs"
+
+
 [dependencies]
 halo2-rsa = { git = "https://github.com/SoraSuegami/halo2-rsa.git" }
 

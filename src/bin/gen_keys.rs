@@ -20,11 +20,12 @@ pub fn main() {
 
     // Set up the circuit
     let k = 18;
+    println!("Generating SRS for RSA circuit with k = {}", k);
 
     // Generate SRS
     let srs = ParamsKZG::<Bn256>::new(k);
 
-    let srs_path = out_dir.join("fibonacci_srs");
+    let srs_path = out_dir.join("rsa_srs");
     write_srs(&srs, srs_path.as_path());
 
     println!("Preparation finished successfully.");
