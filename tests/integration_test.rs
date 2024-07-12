@@ -36,8 +36,8 @@ fn test_prove_verify_end_to_end() {
     let proving_key_path = format!("{}/rsa_pk", ASSETS_PATH);
     let verifying_key_path = format!("{}/rsa_vk", ASSETS_PATH);
 
-    let result = mopro_halo2_rsa::prove(&srs_key_path, &proving_key_path, input).unwrap();
-    let verified = mopro_halo2_rsa::verify(
+    let result = mopro_bindings::prove(&srs_key_path, &proving_key_path, input).unwrap();
+    let verified = mopro_bindings::verify(
         &srs_key_path,
         &verifying_key_path,
         result.0,
