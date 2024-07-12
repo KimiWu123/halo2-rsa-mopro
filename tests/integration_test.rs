@@ -46,3 +46,27 @@ fn test_prove_verify_end_to_end() {
         .unwrap();
     assert!(verified);
 }
+
+#[test]
+fn test_toggle_error() {
+    setup_keys();
+
+    let mut input = HashMap::new();
+    input.insert("gen_only".to_string(), vec!["true".to_string()]);
+
+    let srs_key_path = format!("{}/rsa_srs", ASSETS_PATH);
+
+    // The PK and VK are just placeholders as they are never read
+    let proving_key_path = format!("{}/rsa_pk", ASSETS_PATH);
+    let verifying_key_path = format!("{}/rsa_vk", ASSETS_PATH);
+
+    let result = mopro_bindings::prove(&srs_key_path, &proving_key_path, input).unwrap();
+    let verified = mopro_bindings::verify(
+        &srs_key_path,
+        &verifying_key_path,
+        result.0,
+        result.1,
+    )
+        .unwrap_or(false);
+    assert!(!verified);
+}
