@@ -7,7 +7,7 @@ use halo2wrong::curves::FieldExt;
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::SerializeSeq;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use crate::RSAError;
+use crate::halo2::RSAError;
 
 pub(crate) struct InputsSerialisationWrapper(pub(crate) Vec<Vec<Fr>>);
 

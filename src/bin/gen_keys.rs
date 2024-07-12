@@ -4,7 +4,6 @@ use std::path::Path;
 use halo2wrong::curves::bn256::Bn256;
 use halo2wrong::halo2::poly::commitment::ParamsProver;
 use halo2wrong::halo2::poly::kzg::commitment::ParamsKZG;
-
 use mopro_halo2_rsa::io::write_srs;
 
 pub fn main() {
