@@ -3,6 +3,10 @@ name = "mopro-halo2-rsa"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "mopro_bindings"
+crate-type = ["lib", "cdylib", "staticlib"]
+
 [[bin]]
 name = "gen-keys"
 path = "src/bin/gen_keys.rs"
@@ -11,7 +15,7 @@ path = "src/bin/gen_keys.rs"
 [dependencies]
 halo2-rsa = { git = "https://github.com/SoraSuegami/halo2-rsa.git" }
 
-mopro-ffi = { git = "https://github.com/ElusAegis/mopro-halo2.git", features = ["halo2", "circom"], branch = "feat/halo2-redesign" }
+mopro-ffi = { git = "https://github.com/ElusAegis/mopro-halo2.git", features = ["halo2"], branch = "feat/halo2-redesign" }
 uniffi = "0.28.0"
 
 halo2wrong = { git = "https://github.com/privacy-scaling-explorations/halo2wrong", version = "0.1.0", rev = "63bde545d934e69c806ef9bc8b18f03f6ec0fe8e" }
