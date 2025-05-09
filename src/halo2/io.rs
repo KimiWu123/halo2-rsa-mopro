@@ -35,3 +35,8 @@ pub fn write_srs(srs: &ParamsKZG<Bn256>, path: &Path) {
 pub fn read_srs_path(path: &Path) -> ParamsKZG<Bn256> {
     with_reader(path, |reader| ParamsKZG::read(reader))
 }
+
+/// Read SRS from
+pub fn read_srs_bytes(data: &[u8]) -> ParamsKZG<Bn256> {
+    ParamsKZG::read::<_>(&mut &data[..]).unwrap()
+}

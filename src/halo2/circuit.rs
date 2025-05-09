@@ -4,11 +4,11 @@
 //! 2. The given signature is valid for the given public key and hash.
 use std::marker::PhantomData;
 
-use halo2_rsa::{
-    big_integer::BigIntConfig,
-    RSAChip, RSAConfig, RSAInstructions, RSAPublicKey, RSASignature, RSASignatureVerifier,
-};
 use halo2_rsa::halo2_dynamic_sha256::{Sha256Chip, Sha256Config, Table16Chip};
+use halo2_rsa::{
+    big_integer::BigIntConfig, RSAChip, RSAConfig, RSAInstructions, RSAPublicKey, RSASignature,
+    RSASignatureVerifier,
+};
 use halo2wrong::{
     curves::FieldExt,
     halo2::{
@@ -16,9 +16,7 @@ use halo2wrong::{
         plonk::{Circuit, ConstraintSystem, Error},
     },
 };
-use maingate::{
-    MainGate, MainGateInstructions, RangeChip, RangeInstructions, RegionCtx,
-};
+use maingate::{MainGate, MainGateInstructions, RangeChip, RangeInstructions, RegionCtx};
 
 #[derive(Debug, Clone)]
 pub struct RSAExampleConfig {
@@ -36,13 +34,23 @@ pub struct RSAExample<F: FieldExt> {
 impl<F: FieldExt> RSAExample<F> {
     pub(crate) const BITS_LEN: usize = 2048;
     pub(crate) const LIMB_WIDTH: usize = RSAChip::<F>::LIMB_WIDTH;
-    const EXP_LIMB_BITS: usize = 5;
     pub(crate) const DEFAULT_E: u128 = 65537;
+    const EXP_LIMB_BITS: usize = 5;
+
     fn rsa_chip(&self, config: RSAConfig) -> RSAChip<F> {
         RSAChip::new(config, Self::BITS_LEN, Self::EXP_LIMB_BITS)
     }
     fn sha256_chip(&self, config: Sha256Config) -> Sha256Chip<F> {
         Sha256Chip::new(config)
+    }
+
+    pub fn new(signature: RSASignature<F>, public_key: RSAPublicKey<F>, msg: Vec<u8>) -> Self {
+        RSAExample {
+            signature,
+            public_key,
+            msg,
+            _f: PhantomData,
+        }
     }
 }
 
