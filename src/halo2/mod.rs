@@ -187,6 +187,7 @@ pub fn prove_with_param(
     Ok((proof, serialized_inputs, elapsed.as_secs_f32()))
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub fn verify(
     srs_key_path: &str,
     _verifying_key_path: &str,
@@ -199,6 +200,23 @@ pub fn verify(
     let start = std::time::Instant::now();
     let proving_key = keygen(srs.clone(), &circuit);
     println!("key generation takes: {:?} s", start.elapsed());
+    verify_with_param(srs, proving_key.get_vk().clone(), proof, public_inputs)
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn verify(
+    srs_key: &[u8],
+    _verifying_key: &[u8],
+    proof: Vec<u8>,
+    public_inputs: Vec<u8>,
+) -> Result<bool, Box<dyn Error>> {
+    let srs = io::read_srs_bytes(srs_key);
+    let (circuit, _) = get_circuit::<Fr>();
+
+    let start = std::time::Instant::now();
+    let proving_key = keygen(srs.clone(), &circuit);
+    println!("key generation takes: {:?} s", start.elapsed());
+
     verify_with_param(srs, proving_key.get_vk().clone(), proof, public_inputs)
 }
 
