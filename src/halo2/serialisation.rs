@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
 
+use crate::halo2::RSAError;
 use halo2wrong::curves::bn256::Fr;
 use halo2wrong::curves::FieldExt;
 use serde::de::{SeqAccess, Visitor};
 use serde::ser::SerializeSeq;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use crate::halo2::RSAError;
 
 pub(crate) struct InputsSerialisationWrapper(pub(crate) Vec<Vec<Fr>>);
 
@@ -21,9 +21,8 @@ pub fn _deserialize_circuit_inputs(
                 .iter()
                 .map(|s| {
                     // TODO - support big integers full range, not just u128
-                    let int = u128::from_str(s).map_err(|e| {
-                        RSAError(format!("Failed to parse input as u128: {}", e))
-                    });
+                    let int = u128::from_str(s)
+                        .map_err(|e| RSAError(format!("Failed to parse input as u128: {}", e)));
 
                     int.map(|i| Fr::from_u128(i))
                 })
@@ -41,8 +40,9 @@ impl Serialize for InputsSerialisationWrapper {
         let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
         for vec_fp in &self.0 {
             // Serialize each sub-vector as an array of byte arrays.
-            let inner_bytes: Vec<_> = vec_fp.iter()
-                .map(|fp| fp.to_bytes())  // Convert each element to bytes
+            let inner_bytes: Vec<_> = vec_fp
+                .iter()
+                .map(|fp| fp.to_bytes()) // Convert each element to bytes
                 .collect();
 
             // Serialize this vector of byte arrays as a single element of the outer sequence.

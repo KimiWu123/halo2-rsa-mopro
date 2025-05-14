@@ -11,15 +11,20 @@ crate-type = ["lib", "cdylib", "staticlib"]
 name = "gen-keys"
 path = "src/bin/gen_keys.rs"
 
+[features]
+default = ["mopro-ffi/halo2"]
 
 [dependencies]
 halo2-rsa = { git = "https://github.com/SoraSuegami/halo2-rsa.git" }
 
-mopro-ffi = { git = "https://github.com/ElusAegis/mopro-halo2.git", features = ["halo2"], branch = "feat/halo2-redesign" }
-uniffi = "0.28.0"
+mopro-ffi = { git = "https://github.com/zkmopro/mopro.git", branch = "wasm32-bench" }
+uniffi = { version = "=0.29.0" }
 
 halo2wrong = { git = "https://github.com/privacy-scaling-explorations/halo2wrong", version = "0.1.0", rev = "63bde545d934e69c806ef9bc8b18f03f6ec0fe8e" }
 maingate = { git = "https://github.com/privacy-scaling-explorations/halo2wrong", version = "0.1.0", rev = "63bde545d934e69c806ef9bc8b18f03f6ec0fe8e" }
+halo2_proofs = { git = "https://github.com/privacy-scaling-explorations/halo2", tag = "v2023_04_20", features = [
+    "circuit-params"
+] }
 
 num-bigint = { version = "0.4", features = ["rand"] }
 sha2 = "0.10.6"
@@ -30,10 +35,18 @@ rsa = "0.6.1"
 serde = { version = "1.0.204", features = ["derive"] }
 bincode = "1.3.3"
 thiserror = "^1.0"
+wasm-bindgen = "0.2"
+console_log = "1.0"
+log = "0.4"
+console_error_panic_hook = "0.1.7"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+web-time = "1.1.0"
+web-sys = { version = "0.3", features = ["console"] }
 
 [build-dependencies]
-mopro-ffi = { git = "https://github.com/ElusAegis/mopro-halo2.git", branch = "feat/halo2-redesign" }
-uniffi = { version = "0.28.0", features = ["build"] }
+mopro-ffi = { git = "https://github.com/zkmopro/mopro.git", branch = "wasm32-bench" }
+uniffi = { version = "=0.29.0", features = ["build"] }
 
 [dev-dependencies]
 serde_json = "1.0.120"

@@ -1,8 +1,7 @@
 mod halo2;
 
+pub use halo2::{circuit, io, RSAExample, RSAExampleConfig};
 pub use halo2::{prove, verify};
-
-pub use halo2::io;
 
 mopro_ffi::app!();
 
