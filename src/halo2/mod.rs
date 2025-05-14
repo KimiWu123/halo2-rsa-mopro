@@ -26,11 +26,13 @@ use std::fmt::Display;
 use std::marker::PhantomData;
 use std::path::Path;
 use thiserror::Error;
+use utils::Timer;
 
 pub mod circuit;
 pub use circuit::{RSAExample, RSAExampleConfig};
 pub mod io;
 mod serialisation;
+mod utils;
 
 #[derive(Debug, Error)]
 pub struct RSAError(String);
@@ -44,15 +46,25 @@ impl Display for RSAError {
 type GenerateProofResult = (Vec<u8>, Vec<u8>, f32);
 
 #[cfg(target_arch = "wasm32")]
+use console_error_panic_hook;
+
+#[cfg(target_arch = "wasm32")]
 pub fn prove(
     srs_key: &[u8],
     _proving_key: &[u8],
     input: HashMap<String, Vec<String>>,
 ) -> Result<GenerateProofResult, Box<dyn Error>> {
+    use log::{debug, error, info, trace, warn, Level, LevelFilter};
+
+    console_log::init_with_level(Level::Debug);
+    console_error_panic_hook::set_once();
+
     let srs = io::read_srs_bytes(srs_key);
     let (circuit, limbs) = get_circuit::<Fr>();
+    let start = Timer::new();
     let proving_key = keygen(srs.clone(), &circuit);
     prove_with_param(srs, proving_key, circuit, limbs, input)
+    // Ok((Vec::<u8>::new(), Vec::<u8>::new(), 0f32))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -63,10 +75,11 @@ pub fn prove(
 ) -> Result<GenerateProofResult, Box<dyn Error>> {
     let srs = io::read_srs_path(Path::new(&srs_key_path));
     let (circuit, limbs) = get_circuit::<Fr>();
-    let start = std::time::Instant::now();
+    let start = Timer::new();
     let proving_key = keygen(srs.clone(), &circuit);
-    println!("key generation takes: {:?} s", start.elapsed());
+    println!("key generation takes: {:?} ms", start.elapsed());
     prove_with_param(srs, proving_key, circuit, limbs, input)
+    // Ok((Vec::<u8>::new(), Vec::<u8>::new(), 0f32))
 }
 
 fn get_circuit<F>() -> (RSAExample<Fr>, Vec<Fr>) {
@@ -79,8 +92,9 @@ fn get_circuit<F>() -> (RSAExample<Fr>, Vec<Fr>) {
         RsaPrivateKey::new(&mut rng, RSAExample::<Fr>::BITS_LEN).expect("failed to generate a key");
     let public_key = RsaPublicKey::from(&private_key);
     // 2. Uniformly sample a message.
-    let mut msg: [u8; 128] = [0; 128];
-    for i in 0..128 {
+    const MSG_LEN: usize = 128;
+    let mut msg = [0u8; MSG_LEN];
+    for i in 0..MSG_LEN {
         msg[i] = rng.gen();
     }
     // 3. Compute the SHA256 hash of `msg`.
@@ -134,6 +148,11 @@ pub fn prove_with_param(
     limbs: Vec<Fr>,
     input: HashMap<String, Vec<String>>,
 ) -> Result<GenerateProofResult, Box<dyn Error>> {
+    use log::{debug, error, info, trace, warn, Level, LevelFilter};
+
+    console_log::init_with_level(Level::Debug);
+    console_error_panic_hook::set_once();
+
     // 7. Create public inputs
     let n_fes = limbs;
     let mut hash_fes = Sha256::digest(&circuit.msg)
@@ -164,7 +183,9 @@ pub fn prove_with_param(
 
     let mut transcript = TranscriptWriterBuffer::<_, G1Affine, _>::init(Vec::new());
 
-    let start = std::time::Instant::now();
+    let start = Timer::new();
+
+    info!("create proof");
     create_proof::<KZGCommitmentScheme<Bn256>, ProverGWC<_>, _, _, Blake2bWrite<_, _, _>, _>(
         &srs,
         &proving_key,
@@ -175,7 +196,7 @@ pub fn prove_with_param(
     )
     .map_err(|_| RSAError("Failed to create the proof".to_string()))?;
     let elapsed = start.elapsed();
-    println!("proof generation takes: {:?} s", elapsed);
+    info!("proof generation takes: {} s", elapsed);
 
     let proof = transcript.finalize();
 
@@ -184,7 +205,7 @@ pub fn prove_with_param(
         bincode::serialize(&serialisation::InputsSerialisationWrapper(public_inputs))
             .map_err(|e| RSAError(format!("Serialisation of Inputs failed: {}", e)))?;
 
-    Ok((proof, serialized_inputs, elapsed.as_secs_f32()))
+    Ok((proof, serialized_inputs, elapsed as f32))
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -197,7 +218,7 @@ pub fn verify(
     let srs = io::read_srs_path(Path::new(&srs_key_path));
     let (circuit, _) = get_circuit::<Fr>();
 
-    let start = std::time::Instant::now();
+    let start = Timer::new();
     let proving_key = keygen(srs.clone(), &circuit);
     println!("key generation takes: {:?} s", start.elapsed());
     verify_with_param(srs, proving_key.get_vk().clone(), proof, public_inputs)
@@ -210,12 +231,16 @@ pub fn verify(
     proof: Vec<u8>,
     public_inputs: Vec<u8>,
 ) -> Result<bool, Box<dyn Error>> {
+    use log::{debug, error, info, trace, warn, Level, LevelFilter};
+
+    console_log::init_with_level(Level::Debug);
+    console_error_panic_hook::set_once();
+
     let srs = io::read_srs_bytes(srs_key);
     let (circuit, _) = get_circuit::<Fr>();
 
-    let start = std::time::Instant::now();
+    let start = Timer::new();
     let proving_key = keygen(srs.clone(), &circuit);
-    println!("key generation takes: {:?} s", start.elapsed());
 
     verify_with_param(srs, proving_key.get_vk().clone(), proof, public_inputs)
 }
@@ -240,7 +265,7 @@ pub fn verify_with_param(
     let sliced_pub_inputs: &[&[&[Fr]]] = &vec![sliced_pub_inputs.as_slice()];
 
     let mut transcript = TranscriptReadBuffer::<_, G1Affine, _>::init(proof.as_slice());
-    let start = std::time::Instant::now();
+    let start = Timer::new();
     verify_proof::<_, VerifierGWC<_>, _, Blake2bRead<_, _, _>, _>(
         srs.verifier_params(),
         &vk,
@@ -249,7 +274,7 @@ pub fn verify_with_param(
         &mut transcript,
     )
     .map_err(|_| RSAError("Failed to verify the proof".to_string()))?;
-    println!("proof generation takes: {:?} s", start.elapsed());
+    println!("verification takes: {:?} s", start.elapsed());
 
     Ok(true)
 }

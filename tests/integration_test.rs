@@ -9,10 +9,7 @@ const ASSETS_PATH: &str = "out";
 fn setup_keys() {
     INIT.call_once(|| {
         let mut gen_keys_command = Command::new("cargo");
-        gen_keys_command
-            .arg("run")
-            .arg("--bin")
-            .arg("gen-keys");
+        gen_keys_command.arg("run").arg("--bin").arg("gen-keys");
 
         gen_keys_command
             .spawn()
@@ -21,7 +18,6 @@ fn setup_keys() {
             .expect("cargo build errored");
     });
 }
-
 
 #[test]
 fn test_prove_verify_end_to_end() {
@@ -37,13 +33,8 @@ fn test_prove_verify_end_to_end() {
     let verifying_key_path = format!("{}/rsa_vk", ASSETS_PATH);
 
     let result = mopro_bindings::prove(&srs_key_path, &proving_key_path, input).unwrap();
-    let verified = mopro_bindings::verify(
-        &srs_key_path,
-        &verifying_key_path,
-        result.0,
-        result.1,
-    )
-        .unwrap();
+    let verified =
+        mopro_bindings::verify(&srs_key_path, &verifying_key_path, result.0, result.1).unwrap();
     assert!(verified);
 }
 
@@ -61,12 +52,7 @@ fn test_toggle_error() {
     let verifying_key_path = format!("{}/rsa_vk", ASSETS_PATH);
 
     let result = mopro_bindings::prove(&srs_key_path, &proving_key_path, input).unwrap();
-    let verified = mopro_bindings::verify(
-        &srs_key_path,
-        &verifying_key_path,
-        result.0,
-        result.1,
-    )
+    let verified = mopro_bindings::verify(&srs_key_path, &verifying_key_path, result.0, result.1)
         .unwrap_or(false);
     assert!(!verified);
 }
